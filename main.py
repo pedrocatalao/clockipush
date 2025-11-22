@@ -91,10 +91,12 @@ def main():
     print(f"Target Calendar ID: {CALENDAR_ID}")
     events = calendar_client.get_events(time_min, time_max, calendar_id=CALENDAR_ID)
 
+    # Track total duration of calendar events
+    total_calendar_seconds = 0
+
     if not events:
         print("No events found.")
     else:
-
         for event in events:
             summary = event.get('summary', 'No Title')
             start = event['start'].get('dateTime', event['start'].get('date'))
@@ -111,8 +113,13 @@ def main():
             # Convert event start to UTC ISO for comparison
             try:
                 start_dt = parser.parse(start).astimezone(datetime.timezone.utc)
+                end_dt = parser.parse(end).astimezone(datetime.timezone.utc)
                 start_iso = start_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
                 
+                # Add to total duration
+                duration = (end_dt - start_dt).total_seconds()
+                total_calendar_seconds += duration
+
                 if (start_iso, summary) in existing_signatures:
                     print(f"  -> Skipping duplicate: Entry already exists for {start_iso}")
                     continue
@@ -160,6 +167,8 @@ def main():
         print(f"Failed to fetch GitHub issues: {e}")
         github_issues = []
 
+    eligible_issues = []
+
     for issue in github_issues:
         # Determine Status ("In Progress" or "Done")
         status = None
@@ -201,7 +210,7 @@ def main():
             except Exception as e:
                 print(f"Error parsing issue date {updated_at_str}: {e}")
                 continue
-                
+
         elif status == "In Progress":
             # For IN PROGRESS issues: Log for TODAY (current run date).
             # This ensures they are logged again if run tomorrow.
@@ -210,42 +219,90 @@ def main():
         if not target_dt:
             continue
 
-        print(f"Processing GitHub Issue ({status}): {summary}")
+        eligible_issues.append({
+            "summary": summary,
+            "status": status,
+            "target_dt": target_dt
+        })
 
-        # 3. Set Time (12:00 PM on the target date)
-        start_dt = target_dt.replace(hour=12, minute=0, second=0, microsecond=0)
-        end_dt = start_dt + datetime.timedelta(hours=1)
-        
-        start_iso = start_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-        end_iso = end_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+    # --- Calculate and Distribute Time ---
+    WORK_DAY_SECONDS = 8 * 3600
+    remaining_seconds = max(0, WORK_DAY_SECONDS - total_calendar_seconds)
 
-        # 4. Duplicate Check
-        if (start_iso, summary) in existing_signatures:
-            print(f"  -> Skipping duplicate: Entry already exists for {start_iso}")
-            continue
+    print(f"\nTime Calculation:")
+    print(f"  Total Calendar Time: {total_calendar_seconds / 3600:.2f} hours")
+    print(f"  Target Work Day: 8.00 hours")
+    print(f"  Remaining Time: {remaining_seconds / 3600:.2f} hours")
+    print(f"  Eligible GitHub Issues: {len(eligible_issues)}")
 
-        # 5. Match to Clockify Task
-        project_id, task_id = ai_matcher.match_event_to_task(summary, projects_with_tasks)
+    if eligible_issues and remaining_seconds > 0:
+        seconds_per_issue = remaining_seconds / len(eligible_issues)
+        print(f"  -> Allocating {seconds_per_issue / 3600:.2f} hours per issue")
 
-        if project_id:
-            print(f"  -> Matched to Project ID: {project_id}, Task ID: {task_id}")
-            
-            if not args.dry_run:
-                try:
-                    clockify_client.add_time_entry(
-                        description=summary,
-                        start_time=start_iso,
-                        end_time=end_iso,
-                        project_id=project_id,
-                        task_id=task_id
-                    )
-                    print("  -> Time entry added successfully.")
-                except Exception as e:
-                    print(f"  -> Failed to add time entry: {e}")
+        # Start allocating from 09:00 UTC of the target day (using the first issue's date as reference or 'now')
+        # Since we might have mixed dates (Done vs In Progress), this is tricky.
+        # But typically we are running for "Today".
+        # Let's use the target_dt from the issue itself to set the day, but fix the hour.
+
+        # Group by date to be safe?
+        # For simplicity, we assume the sync is for a single day context.
+        # We will use the target_dt from the issue to determine the DAY, but set the time sequentially.
+        # To avoid overlaps on the same day, we need to track the 'next_start_time' PER DAY.
+
+        next_start_times = {} # Key: Date string (YYYY-MM-DD), Value: datetime
+
+        for issue in eligible_issues:
+            summary = issue['summary']
+            target_dt = issue['target_dt']
+            date_key = target_dt.strftime('%Y-%m-%d')
+
+            # Initialize start time for this day if not set (e.g., 09:00 UTC)
+            if date_key not in next_start_times:
+                next_start_times[date_key] = target_dt.replace(hour=9, minute=0, second=0, microsecond=0)
+
+            start_dt = next_start_times[date_key]
+            end_dt = start_dt + datetime.timedelta(seconds=seconds_per_issue)
+
+            # Update next start time for this day
+            next_start_times[date_key] = end_dt
+
+            start_iso = start_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+            end_iso = end_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+            print(f"Processing GitHub Issue ({issue['status']}): {summary}")
+            print(f"  -> Allocated: {start_iso} - {end_iso}")
+
+            # Duplicate Check
+            if (start_iso, summary) in existing_signatures:
+                print(f"  -> Skipping duplicate: Entry already exists for {start_iso}")
+                continue
+
+            # Match to Clockify Task
+            project_id, task_id = ai_matcher.match_event_to_task(summary, projects_with_tasks)
+
+            if project_id:
+                print(f"  -> Matched to Project ID: {project_id}, Task ID: {task_id}")
+
+                if not args.dry_run:
+                    try:
+                        clockify_client.add_time_entry(
+                            description=summary,
+                            start_time=start_iso,
+                            end_time=end_iso,
+                            project_id=project_id,
+                            task_id=task_id
+                        )
+                        print("  -> Time entry added successfully.")
+                    except Exception as e:
+                        print(f"  -> Failed to add time entry: {e}")
+                else:
+                    print(f"  -> Dry run: Skipping write.")
             else:
-                print(f"  -> Dry run: Skipping write. (Would send {start_iso} to {end_iso})")
-        else:
-            print("  -> No suitable match found.")
+                print("  -> No suitable match found.")
+    elif not eligible_issues:
+        print("  -> No eligible GitHub issues found to distribute time.")
+    else:
+        print("  -> No remaining time to distribute (Calendar events >= 8 hours).")
 
 if __name__ == '__main__':
     main()
