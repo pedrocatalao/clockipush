@@ -38,4 +38,4 @@ jobs:
           # Must use a Personal Access Token to fetch user's issues (assignee:@me)
           GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           GOOGLE_SERVICE_ACCOUNT_FILE: service_account.json
-        run: python main.py --days 1
+        run: python main.py --today
