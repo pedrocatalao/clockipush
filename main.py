@@ -16,6 +16,7 @@ def main():
     arg_parser = argparse.ArgumentParser(description='Sync Google Calendar events to Clockify.')
     arg_parser.add_argument('--dry-run', action='store_true', help='Run without making changes to Clockify')
     arg_parser.add_argument('--days', type=int, default=1, help='Number of past days to sync (default: 1)')
+    arg_parser.add_argument('--today', action='store_true', help='Sync only today (since 00:00 UTC)')
     args = arg_parser.parse_args()
 
     # Configuration
@@ -56,13 +57,22 @@ def main():
     # Calculate time range
     now = datetime.datetime.now(datetime.timezone.utc)
     time_max = now.isoformat().replace('+00:00', 'Z')
-    time_min = (now - datetime.timedelta(days=args.days)).isoformat().replace('+00:00', 'Z')
+
+    if args.today:
+        # Start of today (00:00:00 UTC)
+        start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        time_min = start_of_day.isoformat().replace('+00:00', 'Z')
+        # Buffer min is 1 day before start of day
+        buffer_min_dt = start_of_day - datetime.timedelta(days=1)
+    else:
+        time_min = (now - datetime.timedelta(days=args.days)).isoformat().replace('+00:00', 'Z')
+        buffer_min_dt = now - datetime.timedelta(days=args.days + 1)
 
     # Fetch existing time entries to prevent duplicates
     print("Fetching existing time entries...")
     try:
         # Buffer by 1 extra day to catch events that started before time_min but overlap
-        buffer_min = (now - datetime.timedelta(days=args.days + 1)).isoformat().replace('+00:00', 'Z')
+        buffer_min = buffer_min_dt.isoformat().replace('+00:00', 'Z')
         existing_entries = clockify_client.get_time_entries(buffer_min, time_max)
         # Create a set of signatures: (start_time, description)
         # Clockify returns times in UTC ISO 8601, e.g. "2023-10-27T10:00:00Z"
@@ -83,64 +93,64 @@ def main():
 
     if not events:
         print("No events found.")
-        return
+    else:
 
-    for event in events:
-        summary = event.get('summary', 'No Title')
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        end = event['end'].get('dateTime', event['end'].get('date'))
-        
-        # Skip all-day events for now if they don't have specific times
-        if 'T' not in start:
-            print(f"Skipping all-day event: {summary}")
-            continue
-
-        print(f"Processing event: {summary} ({start} - {end})")
-
-        # Pre-check for duplicates
-        # Convert event start to UTC ISO for comparison
-        try:
-            start_dt = parser.parse(start).astimezone(datetime.timezone.utc)
-            start_iso = start_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+        for event in events:
+            summary = event.get('summary', 'No Title')
+            start = event['start'].get('dateTime', event['start'].get('date'))
+            end = event['end'].get('dateTime', event['end'].get('date'))
             
-            if (start_iso, summary) in existing_signatures:
-                print(f"  -> Skipping duplicate: Entry already exists for {start_iso}")
+            # Skip all-day events for now if they don't have specific times
+            if 'T' not in start:
+                print(f"Skipping all-day event: {summary}")
                 continue
-        except Exception as e:
-            print(f"  -> Error checking duplicate: {e}")
 
-        # Match to Clockify Task
-        project_id, task_id = ai_matcher.match_event_to_task(summary, projects_with_tasks)
+            print(f"Processing event: {summary} ({start} - {end})")
 
-        if project_id:
-            print(f"  -> Matched to Project ID: {project_id}, Task ID: {task_id}")
-            
-            # Convert times to UTC ISO 8601 for Clockify
+            # Pre-check for duplicates
+            # Convert event start to UTC ISO for comparison
             try:
                 start_dt = parser.parse(start).astimezone(datetime.timezone.utc)
-                end_dt = parser.parse(end).astimezone(datetime.timezone.utc)
                 start_iso = start_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-                end_iso = end_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                
+                if (start_iso, summary) in existing_signatures:
+                    print(f"  -> Skipping duplicate: Entry already exists for {start_iso}")
+                    continue
             except Exception as e:
-                print(f"  -> Error parsing dates: {e}")
-                continue
+                print(f"  -> Error checking duplicate: {e}")
 
-            if not args.dry_run:
+            # Match to Clockify Task
+            project_id, task_id = ai_matcher.match_event_to_task(summary, projects_with_tasks)
+
+            if project_id:
+                print(f"  -> Matched to Project ID: {project_id}, Task ID: {task_id}")
+                
+                # Convert times to UTC ISO 8601 for Clockify
                 try:
-                    clockify_client.add_time_entry(
-                        description=summary,
-                        start_time=start_iso,
-                        end_time=end_iso,
-                        project_id=project_id,
-                        task_id=task_id
-                    )
-                    print("  -> Time entry added successfully.")
+                    start_dt = parser.parse(start).astimezone(datetime.timezone.utc)
+                    end_dt = parser.parse(end).astimezone(datetime.timezone.utc)
+                    start_iso = start_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                    end_iso = end_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
                 except Exception as e:
-                    print(f"  -> Failed to add time entry: {e}")
+                    print(f"  -> Error parsing dates: {e}")
+                    continue
+
+                if not args.dry_run:
+                    try:
+                        clockify_client.add_time_entry(
+                            description=summary,
+                            start_time=start_iso,
+                            end_time=end_iso,
+                            project_id=project_id,
+                            task_id=task_id
+                        )
+                        print("  -> Time entry added successfully.")
+                    except Exception as e:
+                        print(f"  -> Failed to add time entry: {e}")
+                else:
+                    print(f"  -> Dry run: Skipping write. (Would send {start_iso} to {end_iso})")
             else:
-                print(f"  -> Dry run: Skipping write. (Would send {start_iso} to {end_iso})")
-        else:
-            print("  -> No suitable match found.")
+                print("  -> No suitable match found.")
 
     # --- GitHub Issue Sync ---
     print("\nFetching GitHub issues...")
