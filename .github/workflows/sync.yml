@@ -1,36 +1,39 @@
-name: Sync Calendar to Clockify
+name: Clockify Sync
 
 on:
   schedule:
-    - cron: '0 23 * * *' # Run daily at 11 PM UTC
-  workflow_dispatch: # Allow manual trigger
+    # 20:00 UTC, Mon, Tue, Wed, Thu
+    - cron: '0 20 * * 1-4'
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
   sync:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Run Sync
-      env:
-        CLOCKIFY_API_KEY: ${{ secrets.CLOCKIFY_API_KEY }}
-        CLOCKIFY_WORKSPACE_ID: ${{ secrets.CLOCKIFY_WORKSPACE_ID }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        GOOGLE_SERVICE_ACCOUNT_FILE: 'service_account.json'
-      run: |
-        # Write service account JSON from secret
-        echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}' > service_account.json
-        
-        python main.py --days 1
+      - name: Create Service Account JSON
+        run: echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}" > service_account.json
+
+      - name: Run Sync
+        env:
+          CLOCKIFY_API_KEY: ${{ secrets.CLOCKIFY_API_KEY }}
+          CLOCKIFY_WORKSPACE_ID: ${{ secrets.CLOCKIFY_WORKSPACE_ID }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_CALENDAR_ID: ${{ secrets.GOOGLE_CALENDAR_ID }}
+          CLOCKIFY_PROJECT_NAME: ${{ secrets.CLOCKIFY_PROJECT_NAME }}
+          # Must use a Personal Access Token to fetch user's issues (assignee:@me)
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          GOOGLE_SERVICE_ACCOUNT_FILE: service_account.json
+        run: python main.py --days 1
