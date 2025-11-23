@@ -7,7 +7,7 @@
 -   **Calendar Sync**: Fetches events from Google Calendar and logs them as time entries.
 -   **GitHub Sync**: Fetches "In Progress" (daily) and "Done" (on completion) issues from GitHub.
 -   **AI Matching**: Uses GPT-4o (or similar) to categorize events into the correct Clockify Project and Task.
--   **Dynamic Time Distribution**: Automatically calculates the remaining time in an 8-hour workday (after meetings) and distributes it equally among your active GitHub issues.
+-   **Dynamic Time Distribution**: Automatically calculates the remaining time in an 8-hour workday (after calendar events) and distributes it equally among your active GitHub issues.
 -   **Duplicate Prevention**: Smartly checks for existing entries to avoid double-booking.
 -   **GitHub Actions Support**: Runs automatically on a schedule (e.g., Mon-Thu at 20:00 UTC).
 
