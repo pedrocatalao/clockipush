@@ -33,7 +33,7 @@ You will need API keys and credentials from the following services:
 ### 4. GitHub
 *   **Personal Access Token (PAT)**:
     1.  Go to [GitHub Settings > Developer settings > Personal access tokens > Tokens (classic)](https://github.com/settings/tokens).
-    2.  Generate a new token with `repo` and `read:org` scopes.
+    2.  Generate a new token with `repo`, `read:project` and `read:org` scopes.
 
 ## Local Installation
 
@@ -100,7 +100,7 @@ Go to your repository **Settings > Secrets and variables > Actions** and add:
 
 1.  **Calendar Events**: The script fetches events from your Google Calendar.
 2.  **AI Analysis**: It sends the event summary to OpenAI to determine the best matching Project and Task in Clockify.
-3.  **Time Calculation**: It sums up the duration of all calendar meetings.
+3.  **Time Calculation**: It sums up the duration of all calendar events.
 4.  **GitHub Issues**: It fetches issues assigned to you that are "In Progress" or "Done" (updated today).
-5.  **Distribution**: It calculates `Remaining Time = 8 hours - Meeting Time` and distributes this time equally among your eligible GitHub issues.
+5.  **Distribution**: It calculates `Remaining Time = 8 hours - Calendar Event's time` and distributes this time equally among your eligible GitHub issues.
 6.  **Sync**: It pushes the time entries to Clockify.
