@@ -6,6 +6,11 @@ from src.ai_matcher import AIMatcher
 # Load environment variables
 load_dotenv()
 
+# ANSI Colors
+CYAN = "\033[96m"
+GREEN = "\033[92m"
+RESET = "\033[0m"
+
 api_key = os.getenv('OPENAI_API_KEY')
 if not api_key:
     print("Error: OPENAI_API_KEY not found in environment.")
@@ -20,19 +25,20 @@ projects_with_tasks = [
             {"id": "task_1a", "name": "Deployments"},
             {"id": "task_1b", "name": "Backlog"},
             {"id": "task_1c", "name": "Meetings"},
-            {"id": "task_1d", "name": "R&D"}
+            {"id": "task_1d", "name": "Research"},
+            {"id": "task_1e", "name": "Consultancy & Support"},
         ]
     }
 ]
 
 test_events = [
-    "Daily Standup",
-    "Fix crash on login screen",
-    "Update homepage banner",
-    "Client Call - Review Designs",
-    "Interview candidate John Doe",
+    "Pedro / Erik (in the car) memory explainer",
+    "#650 [report-service] cpu % shall be replaced by absolute cpu nanoseconds",
+    "Update server from 4.17.8 to 4.17.9",
+    "#654 [report-service] Number format exception (instance report)",
+    "JIRA ticket - tracing issue",
     "Deploy new version to prod",
-    "Refinement session",
+    "Retrospective & backlog refinement",
     "#655 [report-service] Code coverage from 22% to 51%",
     "#554 [Epic] Memory limitations Docker containers",
     "Discussion memory settings customer",
@@ -43,7 +49,7 @@ matcher = AIMatcher(api_key=api_key)
 
 print("Running AI Matcher Tests...")
 for event in test_events:
-    print(f"\nEvent: {event}")
+    print(f"\nEvent: {CYAN}{event}{RESET}")
     p_id, t_id = matcher.match_event_to_task(event, projects_with_tasks)
     
     # Find names for display
@@ -58,4 +64,4 @@ for event in test_events:
                     break
             break
             
-    print(f"  -> Matched: Project='{p_name}' ({p_id}), Task='{t_name}' ({t_id})")
+    print(f"  -> Matched: Project='{p_name}' ({p_id}), Task='{GREEN}{t_name}{RESET}' ({t_id})")

@@ -10,7 +10,27 @@ from src.ai_matcher import AIMatcher
 from src.github_client import get_issues
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
+
+# ANSI Colors
+CYAN = "\033[96m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+RESET = "\033[0m"
+BOLD = "\033[1m"
+
+def resolve_names(projects, project_id, task_id):
+    p_name = "Unknown"
+    t_name = "Unknown"
+    for p in projects:
+        if p['id'] == project_id:
+            p_name = p['name']
+            for t in p['tasks']:
+                if t['id'] == task_id:
+                    t_name = t['name']
+                    break
+            break
+    return p_name, t_name
 
 def main():
     arg_parser = argparse.ArgumentParser(description='Sync Google Calendar events to Clockify.')
@@ -107,7 +127,7 @@ def main():
                 print(f"Skipping all-day event: {summary}")
                 continue
 
-            print(f"Processing event: {summary} ({start} - {end})")
+            print(f"Processing event: {CYAN}{summary}{RESET} ({start} - {end})")
 
             # Pre-check for duplicates
             # Convert event start to UTC ISO for comparison
@@ -130,7 +150,8 @@ def main():
             project_id, task_id = ai_matcher.match_event_to_task(summary, projects_with_tasks)
 
             if project_id:
-                print(f"  -> Matched to Project ID: {project_id}, Task ID: {task_id}")
+                p_name, t_name = resolve_names(projects_with_tasks, project_id, task_id)
+                print(f"  -> Matched: Project='{p_name}' ({project_id}), Task='{GREEN}{t_name}{RESET}' ({task_id})")
                 
                 # Convert times to UTC ISO 8601 for Clockify
                 try:
@@ -269,7 +290,7 @@ def main():
             start_iso = start_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
             end_iso = end_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-            print(f"Processing GitHub Issue ({issue['status']}): {summary}")
+            print(f"Processing GitHub Issue ({issue['status']}): {CYAN}{summary}{RESET}")
             print(f"  -> Allocated: {start_iso} - {end_iso}")
 
             # Duplicate Check
@@ -281,7 +302,8 @@ def main():
             project_id, task_id = ai_matcher.match_event_to_task(summary, projects_with_tasks)
 
             if project_id:
-                print(f"  -> Matched to Project ID: {project_id}, Task ID: {task_id}")
+                p_name, t_name = resolve_names(projects_with_tasks, project_id, task_id)
+                print(f"  -> Matched: Project='{p_name}' ({project_id}), Task='{GREEN}{t_name}{RESET}' ({task_id})")
 
                 if not args.dry_run:
                     try:
