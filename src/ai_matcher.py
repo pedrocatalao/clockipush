@@ -41,9 +41,10 @@ class AIMatcher:
         Select the most appropriate Project and Task for this event.
         
         Guidelines:
-        1. Look for keywords in the event description that match task names.
-        2. "Standup", "Sync", "Discussion", "Call" usually map to "Meetings" or similar tasks.
-        3. If the event is clearly a meeting (e.g. "This is a meeting"), prioritize tasks labeled "Meeting", "Communication", or "Management".
+        1. Look at the calendar event or Github issue title in context, figure out what it is about, and then put it in the correct task.
+        2. "Standup", "Sync", "Discussion", "Call", "Retro", "Retrospective", "Refinement", "Sprint" usually map to task "Meetings".
+        3. "Update", "Upgrade" usually map to task "Deployments".
+        4. If the event is clearly a meeting (e.g. "This is a meeting"), prioritize tasks labeled "Meeting", "Communication", or "Management".
         
         Return ONLY a JSON object with "projectId" and "taskId". 
         IMPORTANT: "projectId" and "taskId" MUST be the alphanumeric IDs provided in the list (e.g., "6584..."), NOT the names.
