@@ -50,7 +50,7 @@ You will need API keys and credentials from the following services:
     ```
     *   `CLOCKIFY_API_KEY=...`
     *   `CLOCKIFY_WORKSPACE_ID=...`
-    *   `OPENAI_API_KEY=...`
+    *   `GEMINI_API_KEY=...`
     *   `GOOGLE_SERVICE_ACCOUNT_FILE=path/to/your/service_account.json`
     *   `GOOGLE_CALENDAR_ID=your_email@domain.com`
     *   `CLOCKIFY_PROJECT_NAME=DevOps` (Optional: filter projects)
@@ -90,7 +90,7 @@ Go to your repository **Settings > Secrets and variables > Actions** and add:
 
 *   `CLOCKIFY_API_KEY`
 *   `CLOCKIFY_WORKSPACE_ID`
-*   `OPENAI_API_KEY`
+*   `GEMINI_API_KEY`
 *   `GOOGLE_CALENDAR_ID`
 *   `CLOCKIFY_PROJECT_NAME`
 *   `PERSONAL_GITHUB_TOKEN` (Your GitHub PAT)

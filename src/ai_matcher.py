@@ -1,11 +1,15 @@
-import openai
+import google.generativeai as genai
 import json
 import re
+import os
 
 class AIMatcher:
-    def __init__(self, api_key, model="gpt-4o"):
-        self.client = openai.OpenAI(api_key=api_key)
-        self.model = model
+    def __init__(self, api_key, model="gemini-2.0-flash"):
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel(
+            model,
+            generation_config={"response_mime_type": "application/json"}
+        )
 
     def match_event_to_task(self, event_description, projects_with_tasks):
         """
@@ -66,17 +70,9 @@ class AIMatcher:
                 task_to_project_map[task['id']] = p_id
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant that outputs JSON."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0,
-                response_format={"type": "json_object"}
-            )
+            response = self.model.generate_content(prompt)
             
-            content = response.choices[0].message.content
+            content = response.text
             result = json.loads(content)
 
             reasoning = result.get('reasoning', 'No reasoning provided')

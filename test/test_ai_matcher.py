@@ -1,4 +1,7 @@
+import sys
 import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import json
 from dotenv import load_dotenv
 from src.ai_matcher import AIMatcher
@@ -11,9 +14,9 @@ CYAN = "\033[96m"
 GREEN = "\033[92m"
 RESET = "\033[0m"
 
-api_key = os.getenv('OPENAI_API_KEY')
+api_key = os.getenv('GEMINI_API_KEY')
 if not api_key:
-    print("Error: OPENAI_API_KEY not found in environment.")
+    print("Error: GEMINI_API_KEY not found in environment.")
     exit(1)
 
 # Mock Data

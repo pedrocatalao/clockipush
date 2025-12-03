@@ -23,21 +23,20 @@ def test_connections():
     else:
         print("Skipping: Missing CLOCKIFY_API_KEY or CLOCKIFY_WORKSPACE_ID")
 
-    # 2. OpenAI
-    print("\n--- OpenAI ---")
-    openai_key = os.getenv('OPENAI_API_KEY')
-    if openai_key:
+    # 2. Gemini
+    print("\n--- Gemini ---")
+    gemini_key = os.getenv('GEMINI_API_KEY')
+    if gemini_key:
         try:
-            matcher = AIMatcher(openai_key)
+            matcher = AIMatcher(gemini_key)
             # Simple test call
             # We won't actually call the API to save cost/time unless needed, 
-            # but instantiating checks the client. 
-            # To really test, we'd need a dummy prompt.
+            # but instantiating checks the client configuration.
             print("Client initialized.")
         except Exception as e:
             print(f"Failed: {e}")
     else:
-        print("Skipping: Missing OPENAI_API_KEY")
+        print("Skipping: Missing GEMINI_API_KEY")
 
     # 3. Google Calendar
     print("\n--- Google Calendar ---")

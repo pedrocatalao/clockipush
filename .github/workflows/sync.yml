@@ -32,7 +32,7 @@ jobs:
         env:
           CLOCKIFY_API_KEY: ${{ secrets.CLOCKIFY_API_KEY }}
           CLOCKIFY_WORKSPACE_ID: ${{ secrets.CLOCKIFY_WORKSPACE_ID }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_CALENDAR_ID: ${{ secrets.GOOGLE_CALENDAR_ID }}
           CLOCKIFY_PROJECT_NAME: ${{ secrets.CLOCKIFY_PROJECT_NAME }}
           # Must use a Personal Access Token to fetch user's issues (assignee:@me)

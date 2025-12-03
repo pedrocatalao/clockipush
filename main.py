@@ -42,12 +42,12 @@ def main():
     # Configuration
     CLOCKIFY_API_KEY = os.getenv('CLOCKIFY_API_KEY')
     CLOCKIFY_WORKSPACE_ID = os.getenv('CLOCKIFY_WORKSPACE_ID')
-    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
     SERVICE_ACCOUNT_FILE = os.getenv('GOOGLE_SERVICE_ACCOUNT_FILE', 'service_account.json')
     CALENDAR_ID = os.getenv('GOOGLE_CALENDAR_ID', 'primary')
     TARGET_PROJECT_NAME = os.getenv('CLOCKIFY_PROJECT_NAME')
 
-    if not all([CLOCKIFY_API_KEY, CLOCKIFY_WORKSPACE_ID, OPENAI_API_KEY]):
+    if not all([CLOCKIFY_API_KEY, CLOCKIFY_WORKSPACE_ID, GEMINI_API_KEY]):
         print("Error: Missing environment variables. Please check .env file.")
         return
 
@@ -55,7 +55,7 @@ def main():
     print("Initializing clients...")
     calendar_client = CalendarClient(service_account_file=SERVICE_ACCOUNT_FILE)
     clockify_client = ClockifyClient(api_key=CLOCKIFY_API_KEY, workspace_id=CLOCKIFY_WORKSPACE_ID)
-    ai_matcher = AIMatcher(api_key=OPENAI_API_KEY)
+    ai_matcher = AIMatcher(api_key=GEMINI_API_KEY)
 
     # Fetch Clockify Projects and Tasks
     print("Fetching Clockify projects and tasks...")
