@@ -6,3 +6,6 @@ requests
 openai
 python-dotenv
 python-dateutil
+openai
+flake8
+black
