@@ -31,4 +31,4 @@ jobs:
       - name: Run Tests
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: python test/test_connection.py
+        run: python test/test_api_links.py
