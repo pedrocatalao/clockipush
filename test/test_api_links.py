@@ -1,6 +1,7 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from dotenv import load_dotenv
 from src.clockify_client import ClockifyClient
@@ -68,6 +69,7 @@ def test_connections():
     if github_token:
         try:
             import requests
+
             headers = {"Authorization": f"Bearer {github_token}"}
             query = """
                 query($cursor: String) {

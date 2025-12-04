@@ -1,12 +1,14 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from dotenv import load_dotenv
 from src.github_client import get_issues
 import json
 
 load_dotenv()
+
 
 def test_github():
     print("Testing GitHub Client...")
