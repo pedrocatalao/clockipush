@@ -1,13 +1,11 @@
 import requests
 import os
 
+
 class ClockifyClient:
     def __init__(self, api_key, workspace_id):
         self.base_url = "https://api.clockify.me/api/v1"
-        self.headers = {
-            "X-Api-Key": api_key,
-            "Content-Type": "application/json"
-        }
+        self.headers = {"X-Api-Key": api_key, "Content-Type": "application/json"}
         self.workspace_id = workspace_id
 
     def get_projects(self):
@@ -24,7 +22,9 @@ class ClockifyClient:
         response.raise_for_status()
         return response.json()
 
-    def add_time_entry(self, description, start_time, end_time, project_id, task_id=None):
+    def add_time_entry(
+        self, description, start_time, end_time, project_id, task_id=None
+    ):
         """Adds a time entry."""
         url = f"{self.base_url}/workspaces/{self.workspace_id}/time-entries"
         payload = {
@@ -32,7 +32,7 @@ class ClockifyClient:
             "start": start_time,
             "end": end_time,
             "projectId": project_id,
-            "taskId": task_id
+            "taskId": task_id,
         }
         response = requests.post(url, headers=self.headers, json=payload)
         try:
@@ -48,7 +48,7 @@ class ClockifyClient:
         params = {
             "start": start_time,
             "end": end_time,
-            "page-size": 1000 # Fetch enough to cover the day
+            "page-size": 1000,  # Fetch enough to cover the day
         }
         response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
@@ -59,4 +59,4 @@ class ClockifyClient:
         url = f"{self.base_url}/user"
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
-        return response.json()['id']
+        return response.json()["id"]

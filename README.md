@@ -63,6 +63,19 @@ You will need API keys and credentials from the following services:
     pip install -r requirements.txt
     ```
 
+### Linter and Formatter
+This project uses `flake8` for linting and `black` for formatting.
+
+To run the linter:
+```bash
+flake8 .
+```
+
+To run the formatter:
+```bash
+black .
+```
+
 ## Usage
 
 ### Manual Run
