@@ -51,13 +51,13 @@ class AIMatcher:
         Goal: Select the most appropriate Project and Task for each item.
 
         Guidelines:
-        1. Analyze the description to understand the work context.
-        2. "Standup", "Sync", "Discussion", "Call", "Retro", "Retrospective", "Refinement", "Sprint" usually map to "Meetings" task - do not use "Meetings - external".
+        1. Analyze the description to understand the work context, look for keywords in the event that match task names.
+        2. "Standup", "Sync", "Discussion", "Call", "Retro", "Retrospective", "Refinement", "Sprint" usually map to "Meetings - internal" task.
         3. "Update", "Upgrade", "Deploy" usually map to "Deployments" task.
-        4. If it's a JIRA ticket, it shall match "Consultancy", "Support".
+        4. If it's a JIRA ticket, map to "Consultancy", "Support" tasks.
         5. If the event refers to "Research", "Analyse", "Investigate", falls into the "Research" task.
-        6. GitHub issues usually map to "Backlog" unless they fall into the previous categories.
-        7. Look for keywords in the event that match task names.
+        6. GitHub issues usually map to "Backlog" unless they fall into the previous tasks.
+        7. Calendar events maps to "Meetings" unless they fall into the previous tasks.
 
         Output Format:
         Return a JSON object where keys are the Item IDs and values are objects with:
