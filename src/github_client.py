@@ -5,9 +5,12 @@ import sys
 
 
 def run_query(query, variables=None):
-    token = os.environ.get("GITHUB_TOKEN")
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("PERSONAL_GITHUB_TOKEN")
     if not token:
-        print("Error: GITHUB_TOKEN environment variable is not set.", file=sys.stderr)
+        print(
+            "Error: Neither GITHUB_TOKEN nor PERSONAL_GITHUB_TOKEN environment variable is set.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     headers = {"Authorization": f"Bearer {token}"}
@@ -18,6 +21,10 @@ def run_query(query, variables=None):
     )
     if request.status_code == 200:
         return request.json()
+    elif request.status_code == 401:
+        raise Exception(
+            f"GitHub Authentication failed (401). Please check if your GITHUB_TOKEN or PERSONAL_GITHUB_TOKEN is valid and has the required scopes (repo, read:project, read:org)."
+        )
     else:
         raise Exception(
             f"Query failed to run by returning code of {request.status_code}. {query}"
@@ -127,13 +134,6 @@ def get_issues():
         cursor = data["pageInfo"]["endCursor"]
 
     return issues
-
-
-import argparse
-
-# ... (imports and run_query function remain the same)
-
-# ... (get_issues function remains the same)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
