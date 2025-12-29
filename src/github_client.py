@@ -135,6 +135,7 @@ def get_issues():
 
     return issues
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Collect GitHub issues with filtering."
