@@ -1,6 +1,6 @@
 # ClockiPush
 
-**ClockiPush** is an automated tool that synchronizes your **Google Calendar** events and **GitHub Issues** to **Clockify** time entries. It uses **OpenAI** to intelligently match your calendar events to the correct Clockify projects and tasks.
+**ClockiPush** is an automated tool that synchronizes your **Google Calendar** events and **GitHub Issues** to **Clockify** time entries. It uses **AI** to intelligently match your calendar events to the correct Clockify projects and tasks.
 
 ## Features
 
